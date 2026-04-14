@@ -12,7 +12,13 @@ from jose import jwt
 
 SUPABASE_JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzZXdnb2t0a251ZHJhc2R4cnZmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTUwNDM1NCwiZXhwIjoyMDkxMDgwMzU0fQ.LYcqafXIYJ1wWTM_Woet1NfzcuXYbB_MrLV33e056CE'
 app = FastAPI()
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=False, allow_methods=["*"], allow_headers=["*"],expose_headers=["*"])
+app.add_middleware(CORSMiddleware,
+                   allow_origins=["https://finance-pessoal.up.railway.app/",
+                                    "https://finance-controle.lovable.app"], 
+                   allow_credentials=True,
+                   allow_methods=["*"],
+                   allow_headers=["*"],
+                   expose_headers=["*"])
 
 def id_user(authorization: str = Header(...)):
  try:
