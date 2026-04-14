@@ -130,7 +130,11 @@ async def add_despesa(authorization : str = Header(...), despesa : dict = Body(.
         user_id = id_user(authorization)
         despesa['id_user'] = user_id
 
-        supabase.table('despesas_pessoais').insert(despesa).execute()
+        print("USER ID:", user_id)
+
+        response = supabase.table('despesas_pessoais').insert(despesa).execute()
+
+        print("RESPONSE:", response)
         return {"ok":True}
     except Exception as e :
         return {"erro":str(e)}
@@ -138,7 +142,13 @@ async def add_despesa(authorization : str = Header(...), despesa : dict = Body(.
 @app.get("/dados_despesas")
 def dados_despesas(authorization : str = Header(...)):
     user_id = id_user(authorization)
+
+    print("USER ID:", user_id)
+
     response = supabase.table('despesas_pessoais').select("*").eq("id_user",user_id).execute()
+
+    print("DATA:", response)
+    
     return response.data
 
 @app.post("/login")
