@@ -133,8 +133,6 @@ async def add_despesa(authorization : str = Header(...), despesa : dict = Body(.
         print("USER ID:", user_id)
         print('DESPESA:', despesa)
 
-        despesa['ano'] = despesa.pop('ano_de_compra')
-        despesa['mes'] = despesa.pop('mês_de_compra')
         response = supabase.table('despesas_pessoais').insert(despesa).execute()
 
         print("RESPONSE:", response)
