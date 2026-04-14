@@ -131,6 +131,7 @@ async def add_despesa(authorization : str = Header(...), despesa : dict = Body(.
         despesa['id_user'] = user_id
 
         print("USER ID:", user_id)
+        print('DESPESA:', despesa)
 
         response = supabase.table('despesas_pessoais').insert(despesa).execute()
 
@@ -148,7 +149,7 @@ def dados_despesas(authorization : str = Header(...)):
     response = supabase.table('despesas_pessoais').select("*").eq("id_user",user_id).execute()
 
     print("DATA:", response)
-    
+
     return response.data
 
 @app.post("/login")
