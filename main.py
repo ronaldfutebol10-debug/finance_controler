@@ -137,13 +137,13 @@ async def add_despesa(authorization : str = Header(...), despesa : dict = Body(.
         data_despesa = df_despesa.to_dict(orient='records')
 
         print("USER ID:", user_id)
-        print('DESPESA:', despesa)
+        print('DESPESA:', data_despesa)
 
 
         response = supabase.table('despesas_pessoais').insert(data_despesa).execute()
 
         print("RESPONSE:", response)
-        return {"ok":True,
+        return {"response":response.error,
                 "data":response.data}
     except Exception as e :
         return {"erro":str(e)}
