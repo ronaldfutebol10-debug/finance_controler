@@ -130,17 +130,12 @@ async def add_despesa(authorization : str = Header(...), despesa : dict = Body(.
         user_id = id_user(authorization)
         despesa['id_user'] = user_id
         
-        df_despesa = pd.DataFrame.from_dict(despesa,orient='index')
-
-        df_despesa.reset_index().drop('index',axis=1,inplace=True)
-
-        data_despesa = df_despesa.to_dict(orient='records')
 
         print("USER ID:", user_id)
-        print('DESPESA:', data_despesa)
+        print('DESPESA:', despesa)
 
 
-        response = supabase.table('despesas_pessoais').insert(data_despesa).execute()
+        response = supabase.table('despesas_pessoais').insert([despesa]).execute()
 
         print("RESPONSE:", response)
         return {"response":response.error,
