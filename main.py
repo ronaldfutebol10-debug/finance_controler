@@ -129,18 +129,22 @@ async def add_despesa(authorization : str = Header(...), despesa : dict = Body(.
     try :
         user_id = id_user(authorization)
         despesa['id_user'] = user_id
-        ordem = ['id_user','data','despesa','valor','tipo_despesa','ano_de_compra','mês_de_compra','pagamento','tipo_pagamento']
+        
+        df_despesa = pd.DataFrame.from_dict(despesa,orient='index')
 
-        despesa = {colun : ordem[colun] for colun in ordem}
+        df_despesa.reset_index().drop('index',axis=1,inplace=True)
+
+        data_despesa = df_despesa.to_dict(orient='records')
 
         print("USER ID:", user_id)
         print('DESPESA:', despesa)
 
 
-        response = supabase.table('despesas_pessoais').insert([despesa]).execute()
+        response = supabase.table('despesas_pessoais').insert(data_despesa).execute()
 
         print("RESPONSE:", response)
-        return {"ok":True}
+        return {"ok":True,
+                "data":response.data}
     except Exception as e :
         return {"erro":str(e)}
 
