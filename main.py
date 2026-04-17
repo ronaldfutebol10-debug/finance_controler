@@ -157,6 +157,7 @@ def dados_despesas(authorization : str = Header(...)):
 
 @app.post("/login")
 def login(data : dict = Body(...)):
+
  try:
    email = data.get('email')
    senha = data.get('password')
@@ -177,4 +178,22 @@ def login(data : dict = Body(...)):
       }}
  except Exception as e:
     return {"erro":str(e)}
+
+@app.delete("/delete_despesa/{id}")
+async def delete_despesa(id: str,authorization : str = Header(...)):
+   try:
+    user_id = authorization(id_user)
+    
+    response = supabase.table('despesas_pessoais').delete().eq('id',id).eq('id_user',user_id).execute()
+
+    if not response.data:
+       raise HTTPException(status_code='404',detail='Despesa não encontrada no banco de dados')
+
+    return {'Data':response.data,
+            'Erro': response.erro
+            }
+
+   except Exception as erro :
+      print(f'Erro str{erro}')
+      return HTTPException(status_code='500',detail=str(erro))
 
