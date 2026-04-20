@@ -180,7 +180,7 @@ def login(data : dict = Body(...)):
     return {"erro":str(e)}
 
 @app.delete("/delete_despesa/{id}")
-async def delete_despesa(id: list[str],authorization : str = Header(...)):
+async def delete_despesa(id: list[str] = Body(...),authorization : str = Header(...)):
    try:
 
     user_id = id_user(authorization)
@@ -189,7 +189,7 @@ async def delete_despesa(id: list[str],authorization : str = Header(...)):
     print('User_iD',user_id)
     
     
-    response = supabase.table('despesas_pessoais').delete().eq('id',id).eq('id_user',user_id).execute()
+    response = supabase.table('despesas_pessoais').delete().in_('id',id).eq('id_user',user_id).execute()
 
     if not response.data:
      raise HTTPException(status_code=404,detail='Despesa não encontrada no banco de dados')
