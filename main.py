@@ -17,7 +17,7 @@ origem = ["https://finance-pessoal.up.railway.app"]
 async def preflight_handler():
     return {}
 app.add_middleware(CORSMiddleware,
-                   allow_origins=origem ,
+                   allow_origins=origem,
                    allow_origin_regex=r"https://.*\.lovable\.app", 
                    allow_credentials=True,
                    allow_methods=["*"],
@@ -179,19 +179,19 @@ def login(data : dict = Body(...)):
  except Exception as e:
     return {"erro":str(e)}
 
-@app.delete("/delete_despesa/{id}")
+@app.delete("/delete_despesa")
 async def delete_despesa(
-   id: list[str] = Body(...), authorization : str = Header(...)
+   ids: list[str] = Body(...), authorization : str = Header(...)
    ):
    try:
 
     user_id = id_user(authorization)
 
-    print('Despesa',id)
+    print('Despesa',ids)
     print('User_iD',user_id)
     
     
-    response = supabase.table('despesas_pessoais').delete().in_('id',id).eq('id_user',user_id).execute()
+    response = supabase.table('despesas_pessoais').delete().in_('id',ids).eq('id_user',user_id).execute()
 
     if not response.data:
      raise HTTPException(status_code=404,detail='Despesa não encontrada no banco de dados')
