@@ -11,13 +11,13 @@ from jose import jwt
 
 SUPABASE_JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzZXdnb2t0a251ZHJhc2R4cnZmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTUwNDM1NCwiZXhwIjoyMDkxMDgwMzU0fQ.LYcqafXIYJ1wWTM_Woet1NfzcuXYbB_MrLV33e056CE'
 app = FastAPI()
-origem = ["https://finance-pessoal.up.railway.app"]
+origins= ["https://finance-pessoal.up.railway.app"]
 
 @app.options("/{rest_of_path:path}")
 async def preflight_handler():
     return {}
 app.add_middleware(CORSMiddleware,
-                   allow_origins=origem,
+                   allow_origins=origins,
                    allow_origin_regex=r"https://.*\.lovable\.app", 
                    allow_credentials=True,
                    allow_methods=["*"],
@@ -179,13 +179,17 @@ def login(data : dict = Body(...)):
  except Exception as e:
     return {"erro":str(e)}
 
+class DeletedDespesa(BaseModel):
+   ids : list[str]
+   
 @app.delete("/delete_despesa")
 async def delete_despesa(
-   ids: list[str] = Body(...), authorization : str = Header(...)
+   data: DeletedDespesa, authorization : str = Header(...)
    ):
    try:
 
     user_id = id_user(authorization)
+    ids = data.ids
 
     print('Despesa',ids)
     print('User_iD',user_id)
