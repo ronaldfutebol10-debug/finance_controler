@@ -211,16 +211,26 @@ async def delete_despesa(
 async def update_despesa(authorization : str = Header(...), despesa : dict = Body(...)):
    try :
       user_id = id_user(authorization)
+      id_despesa = despesa.get("id")
+
+      if not id_despesa:
+         raise HTTPException(
+            status_code=500,
+            detail="ID da despesa não enviado"
+         )
       despesa['id_user'] = user_id
 
       print("USER_ID:",user_id)
       print("DESPESA:",despesa)
 
-      response = supabase.table("despesas_pessoais").update([despesa]).execute()
+      response = supabase.table("despesas_pessoais").update(despesa).eq("id",id_despesa).eq("user_id",user_id).execute()
 
       print("RESPONSE",response)
 
       return {"response":response.error,
               "data":response.data}
    except Exception as e :
-      return {"erro": str(e)}
+       raise HTTPException(
+          status_code=500,
+          detail=str(e)
+       )
