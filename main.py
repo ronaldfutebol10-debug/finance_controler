@@ -40,25 +40,42 @@ def id_user(authorization: str = Header(...)):
  except Exception as erro :
     raise Exception(f"Erro ao decodificar token -> {str(erro)}")
  
-
-@app.get("/teste")
-def teste():
-    return {"ok": True}
-
 @app.post("/upload")
 async def upload_csv(file: UploadFile = File(...),authorization: str = Header(...)):
     if not file.filename.endswith(".csv"):
      return {"erro": "Arquivo inválido"}
     
+    
     user_id = id_user(authorization)
+
+    usuário = supabase.table("usuários").select("limites_despesas").eq("id",user_id).single().execute()
+
+    limite = usuário.data["limite_despesas"]
+
+    total = supabase.table("despesas_pessoais").select("*",count="exact").eq("id_user",user_id).execute()
+
+    total_despesas = total.count
+
     name = file.filename.upper()
 
     
     if 'NUBANK' in name:
         df = pd.read_csv(file.file,encoding='latin-1',sep=',')
 
+        if len(df) >= (total_despesas - limite):
+           raise HTTPException(
+              status_code=400,
+              detail="Limite de Despesas atingido"
+           )
+
     elif 'XP' in name or 'C6' in name:
      df = pd.read_csv(file.file,encoding='utf-8',sep=';')
+
+     if len(df) >= (total_despesas - limite):
+           raise HTTPException(
+              status_code=400,
+              detail="Limite de Despesas atingido"
+           )
 
    
 
@@ -128,6 +145,20 @@ async def add_despesa(authorization : str = Header(...), despesa : dict = Body(.
     try :
         user_id = id_user(authorization)
         despesa['id_user'] = user_id
+
+        usuário = supabase.table("usuários").select("limites_despesa").eq("id",user_id).single().execute()
+
+        limite = usuário.data["limites_despesas"]
+
+        total = supabase.table("despesas_pessoais").select("*",count="exact").eq("id_user",user_id).execute()
+
+        total_despesas = total.count
+
+        if total_despesas >= limite :
+           raise HTTPException(
+              status_code=403,
+              detail="Limite do Plano Gratuito Atingido"
+           )
         
 
         print("USER ID:", user_id)
@@ -169,12 +200,23 @@ def login(data : dict = Body(...)):
    token = response.session.access_token
    user = response.user
 
+   usuário = supabase.table("usuários").select("*").eq("id",user.id).execute()
+
+   if not usuário.data:
+       supabase.table("usuários").insert({
+          "id":user.id,
+          "email":user.email,
+          "plano" : "free",
+          "limites_despesas":30
+       }).execute()
+
    return {
       'access_token': token,
       'user' : {
          "id":user.id,
          "email": user.email,
       }}
+ 
  except Exception as e:
     return {"erro":str(e)}
 
@@ -225,7 +267,7 @@ async def update_despesa(authorization : str = Header(...), despesa : dict = Bod
 
       
       id_despesa = despesa.pop("id")
-      
+
       response = supabase.table("despesas_pessoais").update(despesa).eq("id",id_despesa).eq("id_user",user_id).execute()
 
       print("RESPONSE",response)
