@@ -216,7 +216,7 @@ async def update_despesa(authorization : str = Header(...), despesa : dict = Bod
       print("USER_ID:",user_id)
       print("DESPESA:",despesa)
 
-      response = supabase.table("despesas_pessoais").update(despesa).execute()
+      response = supabase.table("despesas_pessoais").update([despesa]).execute()
 
       print("RESPONSE",response)
 
