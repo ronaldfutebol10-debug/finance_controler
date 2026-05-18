@@ -207,3 +207,20 @@ async def delete_despesa(
       print(f'Erro str{erro}')
       return HTTPException(status_code=500,detail=str(erro))
 
+@app.put("/update_despesa")
+async def update_despesa(authorization : str = Header(...), despesa : dict = Body(...)):
+   try :
+      user_id = id_user(authorization)
+      despesa['id_user'] = user_id
+
+      print("USER_ID:",user_id)
+      print("DESPESA:",despesa)
+
+      response = supabase.table("despesas_pessoais").update(despesa).execute()
+
+      print("RESPONSE",response)
+
+      return {"response":response.error,
+              "data":response.data}
+   except Exception as e :
+      return {"erro": str(e)}
