@@ -51,7 +51,7 @@ async def upload_csv(file: UploadFile = File(...),authorization: str = Header(..
 
     usuário = supabase.table("usuários").select("limites_despesas").eq("id",user_id).single().execute()
 
-    limite = usuário.data["limite_despesas"]
+    limite = usuário.data["limites_despesas"]
 
     total = supabase.table("despesas_pessoais").select("*",count="exact").eq("id_user",user_id).execute()
 
@@ -152,7 +152,7 @@ async def add_despesa(authorization : str = Header(...), despesa : dict = Body(.
         user_id = id_user(authorization)
         despesa['id_user'] = user_id
 
-        usuário = supabase.table("usuários").select("limites_despesa").eq("id",user_id).single().execute()
+        usuário = supabase.table("usuários").select("limites_despesas").eq("id",user_id).single().execute()
 
         limite = usuário.data["limites_despesas"]
 
