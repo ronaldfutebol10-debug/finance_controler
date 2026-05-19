@@ -42,6 +42,7 @@ def id_user(authorization: str = Header(...)):
  
 @app.post("/upload")
 async def upload_csv(file: UploadFile = File(...),authorization: str = Header(...)):
+   try:
     if not file.filename.endswith(".csv"):
      return {"erro": "Arquivo inválido"}
     
@@ -139,6 +140,11 @@ async def upload_csv(file: UploadFile = File(...),authorization: str = Header(..
             "dados": dados, 
             "total_registros": len(df)
             }
+   except Exception as e :
+      raise HTTPException(
+         status_code=500,
+         detail=str(e)
+      )
 
 @app.post("/despesa")
 async def add_despesa(authorization : str = Header(...), despesa : dict = Body(...)):
@@ -171,7 +177,10 @@ async def add_despesa(authorization : str = Header(...), despesa : dict = Body(.
         return {"response":response.error,
                 "data":response.data}
     except Exception as e :
-        return {"erro":str(e)}
+        raise HTTPException(
+           status_code=500,
+           detail=str(e)
+        )
 
 @app.get("/dados_despesas")
 def dados_despesas(authorization : str = Header(...)):
