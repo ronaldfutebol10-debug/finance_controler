@@ -138,7 +138,6 @@ async def upload_csv(file: UploadFile = File(...),authorization: str = Header(..
     return {"Status":"Dados importados e salvos com sucesso",
             "dados": dados, 
             "total_registros": len(df),
-            "response":response.error
             }
    
 
@@ -169,8 +168,7 @@ async def add_despesa(authorization : str = Header(...), despesa : dict = Body(.
         response = supabase.table('despesas_pessoais').insert([despesa]).execute()
 
         print("RESPONSE:", response)
-        return {"response":response.error,
-                "data":response.data}
+        return {"data":response.data}
 
 
 @app.get("/dados_despesas")
