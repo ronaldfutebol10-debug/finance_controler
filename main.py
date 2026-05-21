@@ -65,7 +65,7 @@ async def upload_csv(file: UploadFile = File(...),authorization: str = Header(..
         if len(df) >= (total_despesas - limite):
            raise HTTPException(
               status_code=400,
-              detail="Limite de Despesas atingido"
+              detail="Limite do Plano Gratuito Atingido"
            )
 
     elif 'XP' in name or 'C6' in name:
@@ -74,7 +74,7 @@ async def upload_csv(file: UploadFile = File(...),authorization: str = Header(..
      if len(df) >= (total_despesas - limite):
            raise HTTPException(
               status_code=400,
-              detail="Limite de Despesas atingido"
+              detail="Limite do Plano Gratuito Atingido"
            )
 
    
