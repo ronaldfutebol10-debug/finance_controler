@@ -232,7 +232,7 @@ async def delete_despesa(
 
     usuário = supabase.table("usuários").select("plano").eq("id",user_id).single().execute()
 
-    plano = usuário["plano"]
+    plano = usuário.data["plano"]
 
     print('Despesa',ids)
     print('User_iD',user_id)
@@ -259,7 +259,7 @@ async def update_despesa(authorization : str = Header(...), despesa : dict = Bod
       id_despesa = despesa.get("id")
 
       usuário = supabase.table("usuários").select("plano").eq("id",user_id).single().execute()
-      plano = usuário['plano']
+      plano = usuário.data['plano']
 
       if plano == "free":
          raise HTTPException(status_code=404,detail="Funcionalidade Exclusiva do Plano PRO")
