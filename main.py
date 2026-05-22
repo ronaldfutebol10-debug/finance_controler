@@ -225,56 +225,64 @@ class DeletedDespesa(BaseModel):
 async def delete_despesa(
    data: DeletedDespesa, authorization : str = Header(...)
    ):
-   try:
+
 
     user_id = id_user(authorization)
     ids = data.ids
+
+    usuário = supabase.table("usuários").select("plano").eq("id",user_id).single().execute()
+
+    plano = usuário["plano"]
 
     print('Despesa',ids)
     print('User_iD',user_id)
     
     
-    response = supabase.table('despesas_pessoais').delete().in_('id',ids).eq('id_user',user_id).execute()
+    if plano == "free" :
+       raise HTTPException(status_code=404,detail='Funcionalidade Exclusiva do Plano PRO')
+    
+    else:
+       
+      response = supabase.table('despesas_pessoais').delete().in_('id',ids).eq('id_user',user_id).execute()
 
-    if not response.data:
-     raise HTTPException(status_code=404,detail='Despesa não encontrada no banco de dados')
+      if not response.data:
+       raise HTTPException(status_code=404,detail='Despesa não encontrada no banco de dados')
 
     return {'Data':response.data,
                 'Quantidade de Despesas deletadas': len(response.data)
                 }
 
-   except Exception as erro :
-      print(f'Erro str{erro}')
-      return HTTPException(status_code=500,detail=str(erro))
-
 @app.put("/update_despesa")
 async def update_despesa(authorization : str = Header(...), despesa : dict = Body(...)):
-   try :
+
       user_id = id_user(authorization)
       id_despesa = despesa.get("id")
 
-      if not id_despesa:
-         raise HTTPException(
-            status_code=500,
-            detail="ID da despesa não enviado"
-         )
-      despesa['id_user'] = user_id
+      usuário = supabase.table("usuários").select("plano").eq("id",user_id).single().execute()
+      plano = usuário['plano']
 
-      print("USER_ID:",user_id)
-      print("DESPESA:",despesa)
-
+      if plano == "free":
+         raise HTTPException(status_code=404,detail="Funcionalidade Exclusiva do Plano PRO")
       
-      id_despesa = despesa.pop("id")
+      else:
 
-      response = supabase.table("despesas_pessoais").update(despesa).eq("id",id_despesa).eq("id_user",user_id).execute()
+         if not id_despesa:
+            raise HTTPException(
+               status_code=500,
+               detail="ID da despesa não enviado"
+            )
+         despesa['id_user'] = user_id
 
-      print("RESPONSE",response)
+         print("USER_ID:",user_id)
+         print("DESPESA:",despesa)
 
-      return {
-              "data":response.data}
+         
+         id_despesa = despesa.pop("id")
+
+         response = supabase.table("despesas_pessoais").update(despesa).eq("id",id_despesa).eq("id_user",user_id).execute()
+
+         print("RESPONSE",response)
+
+         return {
+               "data":response.data}
    
-   except Exception as e :
-       raise HTTPException(
-          status_code=500,
-          detail=str(e)
-       )
