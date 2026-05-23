@@ -285,4 +285,20 @@ async def update_despesa(authorization : str = Header(...), despesa : dict = Bod
 
          return {
                "data":response.data}
-   
+
+@app.get("/plano")
+async def get_plano(authorization : str = Header(...)):
+   user_id = id_user(authorization)
+
+   if not user_id :
+      raise HTTPException(
+         status_code=404,
+         detail="Usuário não cadastrado!"
+      )
+
+   plano_user = supabase.table("usuários").select("plano").eq("id",user_id).single().execute()
+
+   type_plano = plano_user.data["plano"]
+
+   return {"plano": type_plano}
+
