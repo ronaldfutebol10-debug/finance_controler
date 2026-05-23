@@ -222,33 +222,24 @@ class DeletedDespesa(BaseModel):
    ids : list[str]
    
 @app.delete("/delete_despesa")
-async def delete_despesa(
-   data: DeletedDespesa, authorization : str = Header(...)
-   ):
+async def delete_despesa(data: DeletedDespesa, authorization : str = Header(...)):
 
 
-    user_id = id_user(authorization)
-    ids = data.ids
+   user_id = id_user(authorization)
+   ids = data.ids
 
-    usuário = supabase.table("usuários").select("plano").eq("id",user_id).single().execute()
 
-    plano = usuário.data["plano"]
+   print('Despesa',ids)
+   print('User_iD',user_id)
+   
+   
+   
+   response = supabase.table('despesas_pessoais').delete().in_('id',ids).eq('id_user',user_id).execute()
 
-    print('Despesa',ids)
-    print('User_iD',user_id)
-    
-    
-    if plano == "free" :
-       raise HTTPException(status_code=404,detail='Funcionalidade Exclusiva do Plano PRO')
-    
-    else:
-       
-      response = supabase.table('despesas_pessoais').delete().in_('id',ids).eq('id_user',user_id).execute()
+   if not response.data:
+      raise HTTPException(status_code=404,detail='Despesa não encontrada no banco de dados')
 
-      if not response.data:
-       raise HTTPException(status_code=404,detail='Despesa não encontrada no banco de dados')
-
-    return {'Data':response.data,
+   return {'Data':response.data,
                 'Quantidade de Despesas deletadas': len(response.data)
                 }
 
@@ -258,33 +249,26 @@ async def update_despesa(authorization : str = Header(...), despesa : dict = Bod
       user_id = id_user(authorization)
       id_despesa = despesa.get("id")
 
-      usuário = supabase.table("usuários").select("plano").eq("id",user_id).single().execute()
-      plano = usuário.data['plano']
-
-      if plano == "free":
-         raise HTTPException(status_code=404,detail="Funcionalidade Exclusiva do Plano PRO")
       
-      else:
+      if not id_despesa:
+         raise HTTPException(
+            status_code=500,
+            detail="ID da despesa não enviado"
+         )
+      despesa['id_user'] = user_id
 
-         if not id_despesa:
-            raise HTTPException(
-               status_code=500,
-               detail="ID da despesa não enviado"
-            )
-         despesa['id_user'] = user_id
+      print("USER_ID:",user_id)
+      print("DESPESA:",despesa)
 
-         print("USER_ID:",user_id)
-         print("DESPESA:",despesa)
+      
+      id_despesa = despesa.pop("id")
 
-         
-         id_despesa = despesa.pop("id")
+      response = supabase.table("despesas_pessoais").update(despesa).eq("id",id_despesa).eq("id_user",user_id).execute()
 
-         response = supabase.table("despesas_pessoais").update(despesa).eq("id",id_despesa).eq("id_user",user_id).execute()
+      print("RESPONSE",response)
 
-         print("RESPONSE",response)
-
-         return {
-               "data":response.data}
+      return {
+            "data":response.data}
 
 @app.get("/plano")
 async def get_plano(authorization : str = Header(...)):
