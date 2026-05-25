@@ -292,9 +292,9 @@ async def get_plano(authorization : str = Header(...)):
 async def recuperar_senha(email : str = Body(..., embed=True)):
 
 
-   row = supabase.table("usuários").select("email, replace_senha").eq("email", email).execute()
+   row = supabase.table("usuários").select("email").eq("email", email).execute()
 
-   if not row.data["email"]:
+   if not row.data:
       raise HTTPException(
          status_code=404,
          detail="Email não encontrado"
