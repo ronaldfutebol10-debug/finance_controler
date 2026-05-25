@@ -270,7 +270,7 @@ async def update_despesa(authorization : str = Header(...), despesa : dict = Bod
       return {
             "data":response.data}
 
-@app.get("/plano")
+@app.get("/dados_plano")
 async def get_plano(authorization : str = Header(...)):
    user_id = id_user(authorization)
 
@@ -280,9 +280,11 @@ async def get_plano(authorization : str = Header(...)):
          detail="Usuário não cadastrado!"
       )
 
-   plano_user = supabase.table("usuários").select("plano").eq("id",user_id).single().execute()
+   plano_user = supabase.table("usuários").select("plano, nome").eq("id",user_id).single().execute()
 
-   type_plano = plano_user.data["plano"]
+   print("Nome", plano_user.data["nome"])
+   print("Plano", plano_user.data["plano"])
 
-   return {"plano": type_plano}
+   return {"plano": plano_user.data["plano"],
+           "nome": plano_user.data["nome"]}
 
