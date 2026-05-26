@@ -61,6 +61,8 @@ async def upload_csv(file: UploadFile = File(...),authorization: str = Header(..
     
     if 'NUBANK' in name:
         df = pd.read_csv(file.file,encoding='latin-1',sep=',')
+        print("Tamanho",len(df))
+        print("Limite",(total_despesas - limite))
 
         if len(df) >= (total_despesas - limite):
            raise HTTPException(
