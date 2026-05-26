@@ -61,10 +61,11 @@ async def upload_csv(file: UploadFile = File(...),authorization: str = Header(..
     
     if 'NUBANK' in name:
         df = pd.read_csv(file.file,encoding='latin-1',sep=',')
+
         print("Tamanho",len(df))
         print("Limite",(total_despesas - limite))
 
-        if len(df) >= (total_despesas - limite):
+        if len(df) >= (total_despesas - limite) * -1:
            raise HTTPException(
               status_code=400,
               detail="Limite do Plano Gratuito Atingido"
@@ -73,7 +74,7 @@ async def upload_csv(file: UploadFile = File(...),authorization: str = Header(..
     elif 'XP' in name or 'C6' in name:
      df = pd.read_csv(file.file,encoding='utf-8',sep=';')
 
-     if len(df) >= (total_despesas - limite):
+     if len(df) >= (total_despesas - limite) * -1:
            raise HTTPException(
               status_code=400,
               detail="Limite do Plano Gratuito Atingido"
