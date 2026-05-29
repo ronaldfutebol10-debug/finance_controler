@@ -8,6 +8,8 @@ from pathlib import Path
 from Categorizar import categorias, limpar_texto, mapa_despesas
 from database import supabase
 from jose import jwt
+from supabase import create_client
+from gotrue import AdminUserAttributes
 
 SUPABASE_JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzZXdnb2t0a251ZHJhc2R4cnZmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTUwNDM1NCwiZXhwIjoyMDkxMDgwMzU0fQ.LYcqafXIYJ1wWTM_Woet1NfzcuXYbB_MrLV33e056CE'
 app = FastAPI()
@@ -314,20 +316,20 @@ async def auth_user(authorization : str = Header(...), novaSenha : str = Body(..
    id = id_user(authorization)
 
    print("ID usuário", id)
-   print("Nova Senha", novaSenha)
+   print("Nova Senha recebida")
 
    response = supabase.auth.admin.update_user_by_id(
       uid=id,
-      attributes=novaSenha
+      attributes=AdminUserAttributes(password=novaSenha)
    )
 
-   if not response :
+   if not response.user :
       raise HTTPException(
          status_code=404,
          detail="ID ou Senha inválida"
       )
 
-   return {"Nova Senha": novaSenha,
+   return {"Mensagem": "Senha atualizada com sucesso!",
            "Status": True }
 
 
