@@ -308,3 +308,27 @@ async def recuperar_senha(email : str = Body(..., embed=True)):
    return {"Status":"Senha de recuperação enviada"}
 
 
+@app.post("/auth/reset")
+async def auth_user(authorization : str = Header(...), novaSenha : str = Body(...,embed=True)):
+
+   id = id_user(authorization)
+
+   print("ID usuário", id)
+   print("Nova Senha", novaSenha)
+
+   response = supabase.auth.admin.update_user_by_id(
+      uid=id,
+      attributes=novaSenha
+   )
+
+   if not response :
+      raise HTTPException(
+         status_code=404,
+         detail="ID ou Senha inválida"
+      )
+
+   return {"Nova Senha": novaSenha,
+           "Status": True }
+
+
+
