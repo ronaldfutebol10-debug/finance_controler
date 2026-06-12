@@ -9,8 +9,13 @@ def fatura_nubank(df):
     df['Pagamento'] = 'Á Vista'
 
     for idx, row in df.iterrows():
-     if row['Valor'] < 0 :
-        df.drop(idx,axis=0,inplace=True)
+  
+     if row['Valor'].startswith("-") :
+      df.drop(idx,axis=0,inplace=True)
+
+     if "." in row['Valor'] :
+      df.loc[idx,'Valor'] = row['Valor'].replace(".","")
+     
 
     return df[['Data'] + ['Tipo de Pagamento'] + ['Despesa'] + ['Tipo de Despesa'] + ['Valor'] + ['Pagamento']]
 

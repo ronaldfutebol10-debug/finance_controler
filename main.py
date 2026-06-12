@@ -94,7 +94,7 @@ async def upload_csv(file: UploadFile = File(...),authorization: str = Header(..
     
     if 'C6' in name:
         df = fatura_C6(df)
-        df['Data'] = pd.to_datetime(df['Data'])
+        df['Data'] = pd.to_datetime(df['Data'],format='%d/%m/%Y')
 
 
     meses = {
