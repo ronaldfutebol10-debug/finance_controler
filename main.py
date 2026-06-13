@@ -124,6 +124,7 @@ async def upload_csv(file: UploadFile = File(...),authorization: str = Header(..
         return 'Diversos'
 
     df['Tipo de Despesa'] = df['Despesa'].apply(categorizar_despesas)
+    df = df.dropna()
     df['Valor'] = (df['Valor']
                         .astype(str)
                         .str.replace(',','.',regex=False)
