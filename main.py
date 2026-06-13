@@ -110,6 +110,7 @@ async def upload_csv(file: UploadFile = File(...),authorization: str = Header(..
         for despesa, categoria  in (zip(map_df['Despesa'],map_df['Tipo de Despesa']))}
     
     def categorizar_despesas(despesa):
+        despesa = str(despesa)
         despesa = limpar_texto(despesa)
 
         if despesa in mapa :
