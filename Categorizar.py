@@ -3,7 +3,7 @@ import re
 import pandas as pd
 
 categorias = {
-'Alimentação':['comfrutas','amigao','panificadora'],
+'Alimentação':['comfrutas','amigao','panificadora',"creme","cravo"],
 'Cabelereiro':['chies'],
 'Cartão':[],
 'Conhecimento':['asimov','unarrado','aprova total','estrategia','livro'],
@@ -13,7 +13,7 @@ categorias = {
 'Música':['música'],
 'Plano Celular':['tim'],
 'Presentes':[],
-'Saúde':['h f','clinica''saúde','saude','treino','coluna','panobiancos'],
+'Saúde':['h f','clinica''saúde','saude','treino','coluna','panobiancos','h k clinic'],
 'Transporte':['partiu','postos','expresso','uber'],
 }
 
