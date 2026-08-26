@@ -338,12 +338,12 @@ async def auth_user(authorization : str = Header(...), novaSenha : str = Body(..
 
 @app.delete('/delete_meta/{id}')
 async def deletar_meta(authorization : str = Header(...)) :
-   id = id_user(authorization)
+   id_auth = id_user(authorization)
 
-   if not id :
+   if not id_auth :
       raise HTTPException(status_code=404, detail='Usuário não encontrado')
 
-   response = supabase.table("metas_gastos").delete().in_('id', id).eq("id_user", id).execute()
+   response = supabase.table("metas_gastos").delete().in_('id', id).eq("id_user", id_auth).execute()
 
    if not response.data :
       raise HTTPException (status_code=404, detail="Meta não encontrada na tabela")
