@@ -363,6 +363,8 @@ async def get_metas(authorization : str = Header(...)):
    if not response.data :
       raise HTTPException(status_code=500, detail="Erro ao consultar metas na tabela")
 
+   print(response.data)
+
    return {
       "metas" : response.data
    }
