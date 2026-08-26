@@ -14,7 +14,7 @@ from typing import Dict
 
 SUPABASE_JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzZXdnb2t0a251ZHJhc2R4cnZmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTUwNDM1NCwiZXhwIjoyMDkxMDgwMzU0fQ.LYcqafXIYJ1wWTM_Woet1NfzcuXYbB_MrLV33e056CE'
 app = FastAPI()
-origins= ["https://webappfinance.vercel.app","http://localhost:8080/"]
+origins= ["https://webappfinance.vercel.app","http://192.168.237.71:8080/"]
 
 @app.options("/{rest_of_path:path}")
 async def preflight_handler():
