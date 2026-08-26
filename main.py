@@ -338,12 +338,12 @@ async def auth_user(authorization : str = Header(...), novaSenha : str = Body(..
 
 @app.delete('/delete_meta/{id}')
 async def deletar_meta(authorization : str = Header(...)) :
-   id_user = id_user(authorization)
+   id = id_user(authorization)
 
-   if not id_user :
+   if not id :
       raise HTTPException(status_code=404, detail='Usuário não encontrado')
 
-   response = supabase.table("metas_gastos").delete().in_('id', id).eq("id_user", id_user).execute()
+   response = supabase.table("metas_gastos").delete().in_('id', id).eq("id_user", id).execute()
 
    if not response.data :
       raise HTTPException (status_code=404, detail="Meta não encontrada na tabela")
@@ -394,7 +394,7 @@ async def add_meta(authorization : str = Header(...), dados_meta : DadosMetas = 
       "ano" :dados_meta.ano
    }
 
-   response = supabase.table("metas_gastos").upsert(dados,on_conflict="id, ano,mes").execute()
+   response = supabase.table("metas_gastos").upsert(dados,on_conflict="id, ano, mes").execute()
 
    if not response.data :
          raise HTTPException(status_code=500, detail="Erro ao inserir meta na tabela")
