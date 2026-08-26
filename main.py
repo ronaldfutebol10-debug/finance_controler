@@ -366,3 +366,31 @@ async def get_metas(authorization : str = Header(...)):
    return {
       "metas" : response.data
    }
+
+class DadosMetas(BaseModel):
+   valor_meta : int
+   ano : int
+   mes : str
+   data : str
+
+
+@app.post('/add_meta')
+async def add_meta(authorization : str = Header(...), dados_meta : DadosMetas = Body(...)):
+   id = id_user(authorization)
+
+   if not id : 
+      raise HTTPException(status_code=500, detail="Erro ao consultar metas na tabela")
+
+   dados = {
+      "id_user" : id,
+      "mes" : dados_meta.mes,
+      "meta" : dados_meta.valor_meta,
+      "data_criacao" : dados_meta.data
+   }
+
+   response = supabase.table("metas_gastos").insert(dados).execute()
+
+   if not response.data :
+         raise HTTPException(status_code=500, detail="Erro ao inserir meta na tabela")
+
+   return 'Meta Inserida com Sucesso'
