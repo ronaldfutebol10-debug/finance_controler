@@ -371,7 +371,7 @@ class DadosMetas(BaseModel):
    valor_meta : int
    ano : int
    mes : str
-   data : str
+   data_meta : str
 
 
 @app.post('/add_meta')
@@ -385,7 +385,7 @@ async def add_meta(authorization : str = Header(...), dados_meta : DadosMetas = 
       "id_user" : id,
       "mes" : dados_meta.mes,
       "meta" : dados_meta.valor_meta,
-      "data_criacao" : dados_meta.data
+      "data_criacao" : dados_meta.data_meta
    }
 
    response = supabase.table("metas_gastos").insert(dados).execute()
