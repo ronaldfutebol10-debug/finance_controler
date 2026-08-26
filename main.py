@@ -385,7 +385,8 @@ async def add_meta(authorization : str = Header(...), dados_meta : DadosMetas = 
       "id_user" : id,
       "mes" : dados_meta.mes,
       "meta" : dados_meta.valor_meta,
-      "data_criacao" : dados_meta.data_meta
+      "data_criacao" : dados_meta.data_meta,
+      "ano" :dados_meta.ano
    }
 
    response = supabase.table("metas_gastos").insert(dados).execute()
