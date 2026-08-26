@@ -237,9 +237,6 @@ async def delete_despesa(data: DeletedDespesa, authorization : str = Header(...)
    ids = data.ids
 
 
-   print('Despesa',ids)
-   print('User_iD',user_id)
-   
    
    
    response = supabase.table('despesas_pessoais').delete().in_('id',ids).eq('id_user',user_id).execute()
@@ -336,4 +333,36 @@ async def auth_user(authorization : str = Header(...), novaSenha : str = Body(..
            "Status": True }
 
 
+@app.delete('/delete_meta/{id}')
+async def deletar_meta(authorization : str = Header(...)) :
+   id_user = id_user(authorization)
 
+   if not id_user :
+      raise HTTPException(status_code=404, detail='Usuário não encontrado')
+
+   response = supabase.table("metas_gastos").delete().in_('id', id).eq("id_user", id_user).execute()
+
+   if not response.data :
+      raise HTTPException (status_code=404, detail="Meta não encontrada na tabela")
+
+   return {
+      "status" : "Meta deletada com sucesso",
+      "detail" : response.data
+   }
+
+@app.get("/dados_metas")
+async def get_metas(authorization : str = Header(...)):
+
+   id = id_user(authorization)
+
+   if not id :
+      raise HTTPException(status_code=404, detail="Usuário inválido")
+
+   response = supabase.table('metas_gastos').select('*').eq("id_user", id).execute()
+
+   if not response.data :
+      raise HTTPException(status_code=500, detail="Erro ao consultar metas na tabela")
+
+   return {
+      "metas" : response.data
+   }
