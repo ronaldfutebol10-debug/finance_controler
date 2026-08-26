@@ -11,6 +11,7 @@ from jose import jwt
 from supabase import create_client
 from gotrue.types import AdminUserAttributes
 from typing import Dict
+from datetime import datetime
 
 SUPABASE_JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzZXdnb2t0a251ZHJhc2R4cnZmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTUwNDM1NCwiZXhwIjoyMDkxMDgwMzU0fQ.LYcqafXIYJ1wWTM_Woet1NfzcuXYbB_MrLV33e056CE'
 app = FastAPI()
@@ -135,9 +136,11 @@ async def upload_csv(file: UploadFile = File(...),authorization: str = Header(..
     
     df['Data'] = df['Data'].dt.strftime("%Y-%m-%d")
     df.columns = df.columns.str.lower().str.strip()
+    df['ano de compra'] = datetime.now().year
 
     df = df.rename(columns={'tipo de despesa':'tipo_despesa','tipo de pagamento':'tipo_pagamento','ano de compra':'ano_de_compra','mês de compra':'mês_de_compra'})
     df['id_user'] = user_id
+
 
     dados = df.to_dict(orient="records")
     
@@ -381,7 +384,7 @@ async def add_meta(authorization : str = Header(...), dados_meta : DadosMetas = 
    id = id_user(authorization)
 
    if not id : 
-      raise HTTPException(status_code=500, detail="Erro ao consultar metas na tabela")
+      raise HTTPException(status_code=500, detail="Usuário Inválido")
 
    dados = {
       "id_user" : id,
@@ -391,7 +394,7 @@ async def add_meta(authorization : str = Header(...), dados_meta : DadosMetas = 
       "ano" :dados_meta.ano
    }
 
-   response = supabase.table("metas_gastos").insert(dados).execute()
+   response = supabase.table("metas_gastos").upsert([dados],on_conflict="id mes").execute()
 
    if not response.data :
          raise HTTPException(status_code=500, detail="Erro ao inserir meta na tabela")
