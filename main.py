@@ -337,7 +337,7 @@ async def auth_user(authorization : str = Header(...), novaSenha : str = Body(..
 
 
 @app.delete('/delete_meta/{id}')
-async def deletar_meta(authorization : str = Header(...)) :
+async def deletar_meta(id : str, authorization : str = Header(...)) :
    id_auth = id_user(authorization)
 
    if not id_auth :
