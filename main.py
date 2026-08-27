@@ -394,7 +394,7 @@ async def add_meta(authorization : str = Header(...), dados_meta : DadosMetas = 
       "ano" :dados_meta.ano
    }
 
-   response = supabase.table("metas_gastos").upsert(dados,on_conflict="ano, mes").execute()
+   response = supabase.table("metas_gastos").upsert(dados,on_conflict="id_user, ano, mes").execute()
 
    if not response.data :
          raise HTTPException(status_code=500, detail="Erro ao inserir meta na tabela")
