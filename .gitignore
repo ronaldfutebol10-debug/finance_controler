@@ -1,2 +1,5 @@
 # Enviroment Variables
 .env
+
+# Debug DataFrames
+t.ipynb
