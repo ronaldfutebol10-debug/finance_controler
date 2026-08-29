@@ -2,4 +2,4 @@
 .env
 
 # Debug DataFrames
-t.ipynb
+*.ipynb
