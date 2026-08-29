@@ -16,7 +16,6 @@ def fatura_nubank(df):
      if "." in row['Valor'] :
       df.loc[idx,'Valor'] = row['Valor'].replace(".","")
      
-
     return df[['Data'] + ['Tipo de Pagamento'] + ['Despesa'] + ['Tipo de Despesa'] + ['Valor'] + ['Pagamento']]
 
 def fatura_C6(df):
@@ -30,15 +29,12 @@ def fatura_C6(df):
 
     fatura_c6['Tipo de Pagamento'] = 'Cartão de Crédito C6'
     fatura_c6['Tipo de Despesa'] = ''
-    fatura_c6.loc[0,'Pagamento'] = '5 de 12'
-    fatura_c6.loc[1,'Pagamento'] = 'Á Vista'
 
-    for idx, row in fatura_c6.iterrows():
-     if row['Valor'] < 0 :
-        fatura_c6.drop(idx,axis=0,inplace=True)
+    fatura_c6['Valor'] = (fatura_c6['Valor'].astype(float))
+    
+    fatura_c6 = fatura_c6[fatura_c6['Valor'] >= 0]
 
     return fatura_c6[['Data'] + ['Tipo de Pagamento'] + ['Despesa'] + ['Tipo de Despesa'] + ['Valor'] + ['Pagamento']]
-
 
 def fatura_xp(df):
 
@@ -60,12 +56,8 @@ def fatura_xp(df):
         valores_formatados_xp.append(valor)
 
     df['Valor'] = valores_formatados_xp
-    df.drop(9,inplace=True)
-
-
-    for idx, row in df.iterrows():
-     if row['Valor'].find('-') >= 0 :
-        df.drop(idx,axis=0,inplace=True)
-
+    
     df['Valor'] = (df['Valor'].str.replace(',','.',regex=False).str.strip().astype(float))
+    df = df[df['Valor'] >= 0]
+
     return df
