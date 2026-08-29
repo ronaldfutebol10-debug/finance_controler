@@ -1,5 +1,7 @@
 from supabase import create_client
+import os
+from dotenv import load_dotenv
 
-SUPABASE_URL = 'https://vsewgoktknudrasdxrvf.supabase.co'
-SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzZXdnb2t0a251ZHJhc2R4cnZmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTUwNDM1NCwiZXhwIjoyMDkxMDgwMzU0fQ.LYcqafXIYJ1wWTM_Woet1NfzcuXYbB_MrLV33e056CE'
+SUPABASE_URL = os.getenv['SUPABASE_URL']
+SUPABASE_KEY = os.getenv['SUPABASE_KEY']
 supabase = create_client(supabase_key=SUPABASE_KEY,supabase_url=SUPABASE_URL)
