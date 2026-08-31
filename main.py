@@ -6,12 +6,13 @@ import pandas as pd
 from functions import fatura_C6,fatura_nubank,fatura_xp
 from pathlib import Path
 from Categorizar import categorias, limpar_texto, mapa_despesas
+from function_plan import check_limit
 from database import supabase
 from jose import jwt
 from supabase import create_client
 from gotrue.types import AdminUserAttributes
 from typing import Dict
-from datetime import datetime
+from datetime import datetime, timezone
 
 SUPABASE_JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzZXdnb2t0a251ZHJhc2R4cnZmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTUwNDM1NCwiZXhwIjoyMDkxMDgwMzU0fQ.LYcqafXIYJ1wWTM_Woet1NfzcuXYbB_MrLV33e056CE'
 app = FastAPI()
@@ -32,7 +33,6 @@ def id_user(authorization: str = Header(...)):
   if not authorization.startswith("Bearer "):
      raise HTTPException(status_code=401, detail='Token Inválido')
     
-
   token = authorization.split(" ")[1]
   payload = jwt.decode(
      token,
@@ -45,12 +45,15 @@ def id_user(authorization: str = Header(...)):
     raise Exception(f"Erro ao decodificar token -> {str(erro)}")
  
 @app.post("/upload")
-async def upload_csv(file: UploadFile = File(...),authorization: str = Header(...)):
+async def upload_csv(file: UploadFile = File(...), authorization: str = Header(...)):
+    
     if not file.filename.endswith(".csv"):
      return {"erro": "Arquivo inválido"}
     
     
     user_id = id_user(authorization)
+    if not user_id :
+      raise HTTPException(status_code=404, detail="Usuário não identificado")
 
     usuário = supabase.table("usuários").select("limites_despesas").eq("id",user_id).single().execute()
 
@@ -61,43 +64,30 @@ async def upload_csv(file: UploadFile = File(...),authorization: str = Header(..
     total_despesas = total.count
 
     name = file.filename.upper()
-
     
     if 'NUBANK' in name:
-        df = pd.read_csv(file.file,encoding='latin-1',sep=',')
+      df = pd.read_csv(file.file,encoding='latin-1',sep=',')
 
-        print("Tamanho",len(df))
-        print("Limite",(total_despesas - limite))
+      check_limit(df, total_despesas, limite)
 
-        if len(df) >= (total_despesas - limite) * -1:
-           raise HTTPException(
-              status_code=400,
-              detail="Limite do Plano Gratuito Atingido"
-           )
+      df = fatura_nubank(df)
+      df['Data'] = pd.to_datetime(df['Data'])
 
-    elif 'XP' in name or 'C6' in name:
+    elif 'XP' in name :
      df = pd.read_csv(file.file,encoding='utf-8',sep=';')
 
-     if len(df) >= (total_despesas - limite) * -1:
-           raise HTTPException(
-              status_code=400,
-              detail="Limite do Plano Gratuito Atingido"
-           )
+     check_limit(df, total_despesas, limite)
 
-   
+     df = fatura_xp(df)
+     df['Data'] = pd.to_datetime(df['Data'],format='%d/%m/%Y')
 
-    if 'NUBANK' in name:
-        df = fatura_nubank(df)
-        df['Data'] = pd.to_datetime(df['Data'])
+    elif 'C6' in name:
+      df = pd.read_csv(file.file,encoding='utf-8',sep=';')
+       
+      check_limit(df, total_despesas, limite)
 
-    if 'XP' in name:
-        df = fatura_xp(df)
-        df['Data'] = pd.to_datetime(df['Data'],format='%d/%m/%Y')
-    
-    if 'C6' in name:
-        df = fatura_C6(df)
-        df['Data'] = pd.to_datetime(df['Data'],format='%d/%m/%Y')
-
+      df = fatura_C6(df)
+      df['Data'] = pd.to_datetime(df['Data'],format='%d/%m/%Y')
 
     meses = {
     1:'Janeiro',2:'Fevereiro',3:'Março',4:'Abril',5:'Maio',6:'Junho',
@@ -107,16 +97,22 @@ async def upload_csv(file: UploadFile = File(...),authorization: str = Header(..
     df['Mês de Compra'] = df['Data'].dt.month.map(meses)
 
     map_df = mapa_despesas()
-    mapa = {
+    mapa_global = {
         limpar_texto(despesa): categoria 
         for despesa, categoria  in (zip(map_df['Despesa'],map_df['Tipo de Despesa']))}
-    
+
+    historico_categorias = supabase.table("mapa_despesa_usuario").select("despesa_limpa, tipo_despesa").eq("id_user", user_id).execute()
+    mapa_historico = { despesa["despesa_limpa"] : despesa["tipo_despesa"] for despesa in historico_categorias.data }
+
     def categorizar_despesas(despesa):
         despesa = str(despesa)
         despesa = limpar_texto(despesa)
 
-        if despesa in mapa :
-            return mapa[despesa]
+        if despesa in mapa_historico:
+           return mapa_historico[despesa]
+
+        if despesa in mapa_global :
+            return mapa_global[despesa]
 
         for categoria, tipos in categorias.items():
             for tipo in tipos:
@@ -145,16 +141,23 @@ async def upload_csv(file: UploadFile = File(...),authorization: str = Header(..
     dados = df.to_dict(orient="records")
     
     response = supabase.table('despesas_pessoais').insert(dados).execute()
+
+    if response.data is None :
+       raise HTTPException(status_code=500, detail="Erro ao inserir despesas da fatura no banco")
     
     return {"Status":"Dados importados e salvos com sucesso",
             "dados": dados, 
             "total_registros": len(df),
-            }
+   }
    
 
 @app.post("/despesa")
 async def add_despesa(authorization : str = Header(...), despesa : dict = Body(...)):
         user_id = id_user(authorization)
+
+        if not user_id :
+         raise HTTPException(status_code=404, detail="Usuário não identificado")
+        
         despesa['id_user'] = user_id
 
         usuário = supabase.table("usuários").select("limites_despesas").eq("id",user_id).single().execute()
@@ -170,15 +173,9 @@ async def add_despesa(authorization : str = Header(...), despesa : dict = Body(.
               status_code=403,
               detail="Limite do Plano Gratuito Atingido"
            )
-        
-
-        print("USER ID:", user_id)
-        print('DESPESA:', despesa)
-
 
         response = supabase.table('despesas_pessoais').insert([despesa]).execute()
 
-        print("RESPONSE:", response)
         return {"data":response.data}
 
 
@@ -186,7 +183,8 @@ async def add_despesa(authorization : str = Header(...), despesa : dict = Body(.
 def dados_despesas(authorization : str = Header(...)):
     user_id = id_user(authorization)
 
-    print("USER ID:", user_id)
+    if not user_id :
+      raise HTTPException(status_code=404, detail="Usuário não identificado")
 
     response = supabase.table('despesas_pessoais').select("*").eq("id_user",user_id).execute()
 
@@ -237,11 +235,11 @@ async def delete_despesa(data: DeletedDespesa, authorization : str = Header(...)
 
 
    user_id = id_user(authorization)
+   if not user_id :
+            raise HTTPException(status_code=404, detail="Usuário não identificado")
+   
    ids = data.ids
 
-
-   
-   
    response = supabase.table('despesas_pessoais').delete().in_('id',ids).eq('id_user',user_id).execute()
 
    if not response.data:
@@ -255,14 +253,15 @@ async def delete_despesa(data: DeletedDespesa, authorization : str = Header(...)
 async def update_despesa(authorization : str = Header(...), despesa : dict = Body(...)):
 
       user_id = id_user(authorization)
-      id_despesa = despesa.get("id")
-
+      if not user_id :
+         raise HTTPException(status_code=404, detail="Usuário não identificado")
       
+      id_despesa = despesa.get("id")
       if not id_despesa:
          raise HTTPException(
-            status_code=500,
+            status_code=400,
             detail="ID da despesa não enviado"
-         )
+      )
       despesa['id_user'] = user_id
 
       print("USER_ID:",user_id)
@@ -273,7 +272,17 @@ async def update_despesa(authorization : str = Header(...), despesa : dict = Bod
 
       response = supabase.table("despesas_pessoais").update(despesa).eq("id",id_despesa).eq("id_user",user_id).execute()
 
-      print("RESPONSE",response)
+      if despesa.get("despesa") and despesa.get("tipo_despesa") :
+         check = limpar_texto(despesa["despesa"])
+         if check :
+            supabase.table("mapa_despesas_usuario").upsert({
+               "id_user" : user_id,
+               "despesa_limpa" : check,
+               "tipo_despesa" : despesa["tipo_despesa"],
+               "date_update" : datetime.now(timezone.utc).isoformat()
+            }, 
+            on_conflict="id_user, despesa_limpa").execute()      
+
 
       return {
             "data":response.data}
