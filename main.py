@@ -9,14 +9,14 @@ from Categorizar import categorias, limpar_texto, mapa_despesas
 from function_plan import check_limit
 from database import supabase
 from jose import jwt
-from supabase import create_client
 from gotrue.types import AdminUserAttributes
 from typing import Dict
 from datetime import datetime, timezone
+import os
 
-SUPABASE_JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzZXdnb2t0a251ZHJhc2R4cnZmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTUwNDM1NCwiZXhwIjoyMDkxMDgwMzU0fQ.LYcqafXIYJ1wWTM_Woet1NfzcuXYbB_MrLV33e056CE'
+SUPABASE_JWT = os.environ.get("SUPABASE_JWT")
 app = FastAPI()
-origins= ["https://webappfinance.vercel.app","http://localhost:8080/"]
+origins= ["https://webappfinance.vercel.app"]
 
 @app.options("/{rest_of_path:path}")
 async def preflight_handler():
@@ -36,13 +36,15 @@ def id_user(authorization: str = Header(...)):
   token = authorization.split(" ")[1]
   payload = jwt.decode(
      token,
-     key="",
-     options={"verify_signature": False,
-              "verify_aud":False}
+     algorithms=['HS256'],
+     key=SUPABASE_JWT,
+     audience='authenticated'
+     
      )
-  return payload.get("sub")
  except Exception as erro :
     raise Exception(f"Erro ao decodificar token -> {str(erro)}")
+ 
+ return payload.get("sub")
  
 @app.post("/upload")
 async def upload_csv(file: UploadFile = File(...), authorization: str = Header(...)):

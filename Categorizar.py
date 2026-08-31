@@ -26,7 +26,6 @@ def limpar_texto(texto):
 
 def mapa_despesas():
    caminho = Path.cwd() / 'csv'
-   #data_frames = []
 
    for csv in caminho.glob('*.csv'):
       map_df = pd.read_csv(csv,encoding='utf-8',sep=',')
