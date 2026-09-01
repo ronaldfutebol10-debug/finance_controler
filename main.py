@@ -45,7 +45,7 @@ def id_user(authorization: str = Header(...)):
 
    payload = jwt.decode(
      token,
-     algorithms=['HS256','RS256'],
+     algorithms=['HS256','RS256','P-256'],
      key=signing_assinature_key,
      audience='authenticated'
    )
