@@ -40,8 +40,11 @@ def id_user(authorization: str = Header(...)):
    
   token = authorization.split(" ")[1]
 
+  print(jwt.get_unverified_header(token))
+
   try:
    signing_assinature_key = jwks_client.get_signing_key_from_jwt(token)
+
 
    payload = jwt.decode(
      token,
