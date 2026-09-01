@@ -8,13 +8,13 @@ from pathlib import Path
 from Categorizar import categorias, limpar_texto, mapa_despesas
 from function_plan import check_limit
 from database import supabase
-from jose import jwt
+import jwt
+from jwt import PyJWKClient
 from gotrue.types import AdminUserAttributes
 from typing import Dict
 from datetime import datetime, timezone
 import os
 
-SUPABASE_JWT = os.environ.get("SUPABASE_JWT")
 app = FastAPI()
 origins= ["https://webappfinance.vercel.app"]
 
@@ -28,23 +28,37 @@ app.add_middleware(CORSMiddleware,
                    allow_headers=["*"],
                    )
 
+
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+JWKS_URL = f"{SUPABASE_URL}/auth/v1/.well-known/jwks.json"
+jwks_client = PyJWKClient(JWKS_URL, cache_keys=True)
+
 def id_user(authorization: str = Header(...)):
- try:
+ 
   if not authorization.startswith("Bearer "):
      raise HTTPException(status_code=401, detail='Token Inválido')
-    
+   
   token = authorization.split(" ")[1]
-  payload = jwt.decode(
+
+  try:
+   signing_assinature_key = jwks_client.get_signing_key_from_jwt(token)
+
+   payload = jwt.decode(
      token,
-     algorithms=['HS256'],
-     key=SUPABASE_JWT,
+     algorithms=['HS256','RS256'],
+     key=signing_assinature_key,
      audience='authenticated'
-     
-     )
- except Exception as erro :
-    raise Exception(f"Erro ao decodificar token -> {str(erro)}")
+   )
+
+  except jwt.PyJWKError :
+    raise HTTPException(status_code=401, detail='Token inválido')
+
+  user_id = payload.get("sub")
+
+  if not user_id :
+     raise HTTPException(status_code=401, detail='Token sem id de usuário')
  
- return payload.get("sub")
+  return user_id
  
 @app.post("/upload")
 async def upload_csv(file: UploadFile = File(...), authorization: str = Header(...)):
